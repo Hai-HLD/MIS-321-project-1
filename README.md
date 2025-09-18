@@ -1,15 +1,11 @@
-# Notes Sharing App (Vanilla JS + Bootstrap)
+How to add Admins/Staff
 
-Static, client-only app to post and browse class notes with filters and star ratings.
+Go to main.js
 
-How to run locally:
-- Open `index.html` directly in your browser, or serve the folder with any static server.
+Line 931, const ADMIN_EMAILS
 
-Stack:
-- HTML5, CSS3, Vanilla JavaScript
-- Bootstrap 5 via CDN
+add your email
 
-Files:
-- `index.html` — main page
-- `styles/main.css` — custom styles
-- `scripts/main.js` — app logic
+Make an account with the added email.
+
+Admin will have the ability to Delete posts/account/comments

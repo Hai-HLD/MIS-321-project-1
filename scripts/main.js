@@ -502,27 +502,42 @@ function showDetailView(noteId) {
 				${note.attachments && note.attachments.length > 0 ? `
 					<div class="mb-3">
 						<h6>Attachments:</h6>
-						<div class="list-group">
+						<div>
 							${note.attachments.map(attachment => {
 								const isImage = attachment.type && attachment.type.startsWith('image/');
-								return `
-									<div class="list-group-item d-flex justify-content-between align-items-center">
-										<div class="d-flex align-items-center">
-											${isImage ? `
-												<img src="${attachment.url}" alt="${escapeHtml(attachment.name)}" 
-													 class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;"
-													 onerror="this.style.display='none'">
-											` : ''}
-											<div>
-												<strong>${escapeHtml(attachment.name)}</strong>
-												<small class="text-muted d-block">${(attachment.size / 1024 / 1024).toFixed(2)} MB</small>
+								if (isImage) {
+									// Image attachment - show full size with click to enlarge
+									return `
+										<div class="mb-3">
+											<div class="d-flex justify-content-between align-items-center mb-2">
+												<div>
+													<strong>${escapeHtml(attachment.name)}</strong>
+													<small class="text-muted d-block">${(attachment.size / 1024 / 1024).toFixed(2)} MB</small>
+												</div>
 											</div>
+											<img src="${attachment.url}" 
+												 alt="${escapeHtml(attachment.name)}" 
+												 class="img-fluid rounded border" 
+												 style="cursor: pointer; max-height: 400px; object-fit: contain;"
+												 onclick="openImageModal('${attachment.url}', '${escapeHtml(attachment.name)}')">
 										</div>
-										<button class="btn btn-sm btn-outline-primary" onclick="downloadAttachment('${attachment.id}')">
-											Download
-										</button>
-									</div>
-								`;
+									`;
+								} else {
+									// Document attachment - show button to view text
+									return `
+										<div class="list-group-item d-flex justify-content-between align-items-center mb-2">
+											<div class="d-flex align-items-center">
+												<div>
+													<strong>${escapeHtml(attachment.name)}</strong>
+													<small class="text-muted d-block">${(attachment.size / 1024 / 1024).toFixed(2)} MB</small>
+												</div>
+											</div>
+											<button class="btn btn-sm btn-outline-primary" onclick="viewDocument('${attachment.id}')">
+												View Text
+											</button>
+										</div>
+									`;
+								}
 							}).join('')}
 						</div>
 					</div>
@@ -1269,11 +1284,17 @@ async function submitAddNotePage() {
 		return;
 	}
 	
-	// Process uploaded files
+	// Process uploaded files (images only)
 	const files = Array.from(addNotePageFiles.files);
 	const attachments = [];
 	
 	for (const file of files) {
+		// Only allow image files
+		if (!file.type.startsWith('image/')) {
+			alert(`File "${file.name}" is not an image. Only image files are allowed.`);
+			continue;
+		}
+		
 		const attachment = {
 			id: generateId(),
 			name: file.name,
@@ -1283,15 +1304,13 @@ async function submitAddNotePage() {
 			url: `#file-${file.name}`
 		};
 		
-		// For images, store the data URL for preview
-		if (file.type.startsWith('image/')) {
-			attachment.dataUrl = await new Promise((resolve) => {
-				const reader = new FileReader();
-				reader.onload = (e) => resolve(e.target.result);
-				reader.readAsDataURL(file);
-			});
-			attachment.url = attachment.dataUrl; // Use data URL for display
-		}
+		// Store the image data URL for display
+		attachment.dataUrl = await new Promise((resolve) => {
+			const reader = new FileReader();
+			reader.onload = (e) => resolve(e.target.result);
+			reader.readAsDataURL(file);
+		});
+		attachment.url = attachment.dataUrl; // Use data URL for display
 		
 		attachments.push(attachment);
 	}
@@ -1321,14 +1340,54 @@ async function submitAddNotePage() {
 	showDetailView(note.id);
 }
 
-function downloadAttachment(attachmentId) {
-	// In a real application, this would download the actual file from a server
-	// For now, we'll show an alert since we're using localStorage
-	alert("File download would be implemented with a proper server backend. The file information is stored in the note data.");
+function openImageModal(imageUrl, imageName) {
+	const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
+	const imageModalImg = document.getElementById('imageModalImg');
+	const imageModalTitle = document.getElementById('imageModalTitle');
+	
+	imageModalImg.src = imageUrl;
+	imageModalImg.alt = imageName;
+	imageModalTitle.textContent = imageName;
+	
+	imageModal.show();
 }
 
-// Make downloadAttachment available globally for onclick handlers
-window.downloadAttachment = downloadAttachment;
+function viewDocument(attachmentId) {
+	// Find the attachment in all notes
+	const notes = loadNotes();
+	let attachment = null;
+	let noteTitle = '';
+	
+	for (const note of notes) {
+		if (note.attachments) {
+			const foundAttachment = note.attachments.find(att => att.id === attachmentId);
+			if (foundAttachment) {
+				attachment = foundAttachment;
+				noteTitle = note.title;
+				break;
+			}
+		}
+	}
+	
+	if (!attachment) {
+		alert('Attachment not found');
+		return;
+	}
+	
+	// Since we only allow images now, just show a message
+	const documentModal = new bootstrap.Modal(document.getElementById('documentModal'));
+	const documentModalTitle = document.getElementById('documentModalTitle');
+	const documentModalContent = document.getElementById('documentModalContent');
+	
+	documentModalTitle.textContent = `${attachment.name} - ${noteTitle}`;
+	documentModalContent.textContent = 'This is an image attachment. Click on the image above to view it in full size.';
+	
+	documentModal.show();
+}
+
+// Make functions available globally for onclick handlers
+window.openImageModal = openImageModal;
+window.viewDocument = viewDocument;
 
 // Collapse hamburger menu function
 function collapseHamburgerMenu() {

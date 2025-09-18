@@ -147,8 +147,8 @@
                     </div>
                     <div class="col-12">
                       <label class="form-label" for="addNotePageFiles">Attach Documents (Optional)</label>
-                      <input id="addNotePageFiles" class="form-control" type="file" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif">
-                      <div class="form-text">You can upload PDF, Word documents, text files, or images. Maximum 10MB per file.</div>
+                      <input id="addNotePageFiles" class="form-control" type="file" multiple accept="image/*">
+                      <div class="form-text">You can upload image files only. Maximum 10MB per file.</div>
                       <div id="fileList" class="mt-2"></div>
                     </div>
                     <div class="col-12">
@@ -324,6 +324,36 @@
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
             <button id="changePwSubmit" class="btn btn-primary">Update Password</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Enlargement Modal -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="imageModalTitle">Image</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <img id="imageModalImg" src="" alt="" class="img-fluid">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document View Modal -->
+    <div class="modal fade" id="documentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="documentModalTitle">Document</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <pre id="documentModalContent" class="bg-light p-3 rounded" style="white-space: pre-wrap; max-height: 500px; overflow-y: auto;"></pre>
           </div>
         </div>
       </div>
